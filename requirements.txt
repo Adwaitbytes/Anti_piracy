@@ -1,16 +1,16 @@
 # Core Dependencies
-fastapi==0.68.1
-uvicorn==0.15.0
+fastapi==0.104.1
+uvicorn==0.24.0
 jinja2==3.1.2
-aiofiles==0.8.0
-python-multipart==0.0.5
-web3==6.0.0
-python-dotenv==0.19.1
-Pillow==9.3.0
-numpy==1.21.4
-tensorflow-cpu==2.7.0
+aiofiles==23.2.1
+python-multipart==0.0.6
+web3==6.11.3
+python-dotenv==1.0.0
+Pillow==10.1.0
+numpy==1.26.2
+tensorflow-cpu==2.15.0
 python-jose==3.3.0
-requests==2.26.0
-starlette==0.14.2
+requests==2.31.0
+starlette==0.27.0
 
 # Testing Dependencies
