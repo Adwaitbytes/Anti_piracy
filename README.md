@@ -1,142 +1,76 @@
-# SecureStream: Advanced Content Protection System
+# SecureStream - Advanced Content Protection Platform
 
-SecureStream is an innovative content protection system that combines blockchain technology, advanced watermarking, and AI-powered detection to protect digital content from unauthorized use and distribution.
+SecureStream is a cutting-edge content protection platform that combines blockchain technology, digital watermarking, and AI-powered piracy detection to protect digital content.
 
 ## Features
 
-### 1. Digital Watermarking
-- DCT-based invisible watermarking
-- Error correction and validation
-- Resistant to common manipulations
-- Adjustable watermark strength
+- **Blockchain Integration**: Content ownership is registered and verified on the EDU Chain Testnet
+- **Digital Watermarking**: Invisible watermarks embedded in content using LSB steganography
+- **AI-Powered Detection**: Advanced content matching using ResNet50 neural network
+- **User-Friendly Interface**: Modern UI built with FastAPI and Tailwind CSS
 
-### 2. AI-Powered Piracy Detection
-- ResNet50-based feature extraction
-- Similarity detection
-- Quick content comparison
-- Manipulation detection
+## Setup
 
-### 3. Secure API
-- JWT authentication
-- Rate limiting
-- Input validation
-- Comprehensive error handling
-
-### 4. Content Management
-- Single and batch content registration
-- Content verification
-- Piracy detection
-- Content status tracking
-
-## Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/SecureStream.git
-cd SecureStream
-```
-
-2. Install dependencies:
+1. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Start the server:
-```bash
-uvicorn secure_stream.api:app --reload --host 0.0.0.0 --port 8000
+2. Configure environment variables in `.env`:
+```ini
+CONTRACT_ADDRESS=0x4b86e7fab7E5FF8A44fea97d2a830875272e1Ca9
+PRIVATE_KEY=your_private_key_here
+WEB3_PROVIDER_URL=https://rpc.open-campus-codex.gelato.digital
+NETWORK_ID=656476
 ```
 
-## API Documentation
-
-### Authentication
+3. Run the application:
 ```bash
-POST /token
-Content-Type: application/x-www-form-urlencoded
-username=demo&password=demo
+python -m uvicorn index:app --reload
 ```
 
-### Content Registration
-```bash
-POST /api/v1/content/register
-Authorization: Bearer <token>
-Content-Type: multipart/form-data
+4. Open http://localhost:8000 in your browser
 
-file: <file>
-title: "Content Title"
-owner: "Owner Name"
-content_type: "image"
-rights: {"license": "CC-BY"}
-```
+## Usage
 
-### Batch Registration
-```bash
-POST /api/v1/content/register/batch
-Authorization: Bearer <token>
-Content-Type: multipart/form-data
+### Protecting Content
+1. Click "Upload" in the navigation
+2. Fill in the content details
+3. Select your file
+4. Click "Protect Content"
 
-files: [<file1>, <file2>]
-registrations: [
-    {
-        "title": "Content 1",
-        "owner": "Owner",
-        "content_type": "image",
-        "rights": {"license": "CC-BY"}
-    },
-    ...
-]
-```
+### Verifying Ownership
+1. Click "Verify" in the navigation
+2. Upload the content you want to verify
+3. The system will extract the watermark and check the blockchain
 
-### Content Verification
-```bash
-POST /api/v1/content/verify
-Authorization: Bearer <token>
-Content-Type: multipart/form-data
+### Detecting Piracy
+1. Click "Detect" in the navigation
+2. Upload the suspicious content
+3. The AI system will compare it with protected content
 
-file: <file>
-```
+## Technical Details
 
-### Piracy Detection
-```bash
-POST /api/v1/content/detect
-Authorization: Bearer <token>
-Content-Type: multipart/form-data
+### Smart Contract
+- Deployed on EDU Chain Testnet
+- Handles content registration and verification
+- Stores ownership information and content status
 
-file: <file>
-```
+### Watermarking
+- Uses LSB (Least Significant Bit) steganography
+- Embeds unique identifiers in content
+- Resistant to basic modifications
 
-## Testing
+### AI Detection
+- Uses ResNet50 for feature extraction
+- Generates unique fingerprints for content
+- High accuracy in detecting modified versions
 
-Run the test suite:
-```bash
-cd tests
-python test_all_endpoints.py
-```
+## Security
 
-## Technology Stack
-
-- **Backend**: FastAPI
-- **Authentication**: JWT
-- **Image Processing**: OpenCV
-- **AI/ML**: TensorFlow, ResNet50
-- **Testing**: Python unittest
-
-## Future Enhancements
-
-1. **Blockchain Integration**
-   - Replace mock blockchain with actual implementation
-   - Smart contracts for content registration
-
-2. **Advanced Detection**
-   - Train custom AI models
-   - Add more detection methods
-
-3. **Scalability**
-   - Distributed processing
-   - Cloud storage integration
-
-4. **User Interface**
-   - Web dashboard
-   - Analytics and reporting
+- Private keys are stored securely in environment variables
+- All blockchain transactions are signed locally
+- Content fingerprints are stored separately from content
 
 ## Contributing
 
@@ -144,7 +78,7 @@ python test_all_endpoints.py
 2. Create your feature branch
 3. Commit your changes
 4. Push to the branch
-5. Create a Pull Request
+5. Create a new Pull Request
 
 ## License
 

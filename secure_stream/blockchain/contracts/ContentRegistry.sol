@@ -3,93 +3,87 @@ pragma solidity ^0.8.0;
 
 contract ContentRegistry {
     struct Content {
-        string contentId;
-        string contentHash;
         address owner;
+        string contentHash;
+        string watermark;
         uint256 timestamp;
-        string metadata;
-        bool exists;
+        bool isValid;
     }
     
-    mapping(string => Content) public contents;
-    mapping(address => string[]) public ownerContents;
+    mapping(string => Content) private contents;
     
     event ContentRegistered(
         string contentId,
-        string contentHash,
         address owner,
+        string contentHash,
         uint256 timestamp
     );
     
-    event ContentVerified(
+    event ContentStatusUpdated(
         string contentId,
-        string contentHash,
-        bool verified
+        bool isValid,
+        uint256 timestamp
     );
     
     function registerContent(
         string memory contentId,
         string memory contentHash,
-        string memory metadata
+        string memory watermark
     ) public {
-        require(!contents[contentId].exists, "Content ID already exists");
+        require(contents[contentId].owner == address(0), "Content already registered");
         
-        Content memory newContent = Content({
-            contentId: contentId,
-            contentHash: contentHash,
+        contents[contentId] = Content({
             owner: msg.sender,
+            contentHash: contentHash,
+            watermark: watermark,
             timestamp: block.timestamp,
-            metadata: metadata,
-            exists: true
+            isValid: true
         });
-        
-        contents[contentId] = newContent;
-        ownerContents[msg.sender].push(contentId);
         
         emit ContentRegistered(
             contentId,
-            contentHash,
             msg.sender,
+            contentHash,
             block.timestamp
         );
-    }
-    
-    function verifyContent(
-        string memory contentId,
-        string memory contentHash
-    ) public view returns (bool) {
-        require(contents[contentId].exists, "Content not found");
-        return keccak256(abi.encodePacked(contents[contentId].contentHash)) == 
-               keccak256(abi.encodePacked(contentHash));
     }
     
     function getContent(string memory contentId)
         public
         view
         returns (
-            string memory,
-            string memory,
-            address,
-            uint256,
-            string memory
+            address owner,
+            string memory contentHash,
+            string memory watermark,
+            uint256 timestamp,
+            bool isValid
         )
     {
-        require(contents[contentId].exists, "Content not found");
         Content memory content = contents[contentId];
+        require(content.owner != address(0), "Content not found");
+        
         return (
-            content.contentId,
-            content.contentHash,
             content.owner,
+            content.contentHash,
+            content.watermark,
             content.timestamp,
-            content.metadata
+            content.isValid
         );
     }
     
-    function getOwnerContents(address owner)
-        public
-        view
-        returns (string[] memory)
-    {
-        return ownerContents[owner];
+    function updateContentStatus(string memory contentId, bool isValid) public {
+        require(contents[contentId].owner != address(0), "Content not found");
+        require(
+            msg.sender == contents[contentId].owner,
+            "Only owner can update status"
+        );
+        
+        contents[contentId].isValid = isValid;
+        
+        emit ContentStatusUpdated(
+            contentId,
+            isValid,
+            block.timestamp
+        );
     }
 }

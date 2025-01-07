@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM Content Loaded');
+
     const fileInput = document.getElementById('fileInput');
     const uploadBtn = document.getElementById('uploadBtn');
     const uploadDetails = document.getElementById('uploadDetails');
@@ -9,18 +11,34 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultDiv = document.getElementById('result');
     const loadingDiv = document.getElementById('loading');
 
+    // Log elements to make sure they're found
+    console.log('Elements found:', {
+        fileInput: !!fileInput,
+        uploadBtn: !!uploadBtn,
+        uploadDetails: !!uploadDetails,
+        contentTitle: !!contentTitle,
+        submitUpload: !!submitUpload,
+        verifyBtn: !!verifyBtn,
+        detectBtn: !!detectBtn,
+        resultDiv: !!resultDiv,
+        loadingDiv: !!loadingDiv
+    });
+
     let currentOperation = null;
     let selectedFile = null;
 
     function showLoading() {
+        console.log('Showing loading...');
         loadingDiv.classList.remove('hidden');
     }
 
     function hideLoading() {
+        console.log('Hiding loading...');
         loadingDiv.classList.add('hidden');
     }
 
     function showResult(message, isError = false) {
+        console.log('Showing result:', message, 'isError:', isError);
         resultDiv.innerHTML = `
             <div class="${isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'} p-4 rounded-md">
                 ${message}
@@ -30,16 +48,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function handleFileSelect(operation) {
+        console.log('Handling file select for operation:', operation);
         currentOperation = operation;
         fileInput.click();
     }
 
     uploadBtn.addEventListener('click', () => {
+        console.log('Upload button clicked');
         uploadDetails.classList.remove('hidden');
         resultDiv.classList.add('hidden');
     });
 
     submitUpload.addEventListener('click', async () => {
+        console.log('Submit upload clicked');
         if (!fileInput.files[0]) {
             handleFileSelect('upload');
             return;
@@ -57,11 +78,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             showLoading();
+            console.log('Sending upload request...');
             const response = await fetch('/api/upload', {
                 method: 'POST',
                 body: formData
             });
             const data = await response.json();
+            console.log('Upload response:', data);
             
             if (data.success) {
                 showResult(`
@@ -77,18 +100,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 showResult(data.message, true);
             }
         } catch (error) {
+            console.error('Upload error:', error);
             showResult('Error uploading content: ' + error.message, true);
         } finally {
             hideLoading();
         }
     });
 
-    verifyBtn.addEventListener('click', () => handleFileSelect('verify'));
-    detectBtn.addEventListener('click', () => handleFileSelect('detect'));
+    verifyBtn.addEventListener('click', () => {
+        console.log('Verify button clicked');
+        handleFileSelect('verify');
+    });
+
+    detectBtn.addEventListener('click', () => {
+        console.log('Detect button clicked');
+        handleFileSelect('detect');
+    });
 
     fileInput.addEventListener('change', async () => {
+        console.log('File input changed');
         const file = fileInput.files[0];
         if (!file) return;
+
+        console.log('Selected file:', file.name);
 
         if (currentOperation === 'upload') {
             // File selected for upload, wait for title and submit
@@ -100,11 +134,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             showLoading();
+            console.log('Sending', currentOperation, 'request...');
             const response = await fetch(`/api/${currentOperation}`, {
                 method: 'POST',
                 body: formData
             });
             const data = await response.json();
+            console.log(currentOperation, 'response:', data);
 
             if (data.success) {
                 let resultMessage = '';
@@ -131,6 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 showResult(data.message, true);
             }
         } catch (error) {
+            console.error(currentOperation, 'error:', error);
             showResult(`Error during ${currentOperation}: ` + error.message, true);
         } finally {
             hideLoading();
