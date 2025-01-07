@@ -8,8 +8,9 @@ web3==6.0.0
 python-dotenv==0.19.1
 Pillow==9.3.0
 numpy==1.21.4
-tensorflow==2.7.0
+tensorflow-cpu==2.7.0
 python-jose==3.3.0
 requests==2.26.0
+starlette==0.14.2
 
 # Testing Dependencies

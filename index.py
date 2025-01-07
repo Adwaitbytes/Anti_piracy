@@ -14,6 +14,7 @@ import tensorflow as tf
 from secure_stream.watermarking.watermarker import embed_watermark, extract_watermark
 from datetime import datetime
 import uuid
+from fastapi.templating import Jinja2Templates
 
 # Load environment variables
 load_dotenv()
@@ -23,10 +24,10 @@ app = FastAPI(title="SecureStream API")
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # Allows all origins
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
 )
 
 # Initialize Web3 and contract
@@ -42,8 +43,11 @@ model = tf.keras.applications.ResNet50(weights='imagenet', include_top=False)
 os.makedirs("uploads", exist_ok=True)
 os.makedirs("fingerprints", exist_ok=True)
 
-# Mount static files
+# Serve static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Mount templates
+templates = Jinja2Templates(directory="templates")
 
 def generate_fingerprint(image):
     """Generate a fingerprint from an image using ResNet50"""
