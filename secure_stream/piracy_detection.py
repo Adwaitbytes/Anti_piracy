@@ -61,3 +61,74 @@ class PiracyDetector:
         """Register content in the feature database."""
         features = self.extract_features(image)
         self.feature_database[content_id] = features
+        
+        # ORB feature matching
+        orb_sim = 0.0
+        if (len(extra_feat1['descriptors']) > 0 and 
+            len(extra_feat2['descriptors']) > 0):
+            # Use BFMatcher for ORB descriptors
+            bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+            matches = bf.match(
+                extra_feat1['descriptors'],
+                extra_feat2['descriptors']
+            )
+            
+            # Sort matches by distance
+            matches = sorted(matches, key=lambda x: x.distance)
+            
+            # Use top matches with more lenient distance threshold
+            good_matches = [m for m in matches[:100] if m.distance < 50]
+            orb_sim = len(good_matches) / min(
+                len(extra_feat1['keypoints']),
+                len(extra_feat2['keypoints'])
+            )
+        
+        # Weighted combination of similarities
+        # Increase weight of block similarity for better cropping detection
+        weights = {
+            'cnn': 0.3,
+            'hash': 0.2,
+            'block': 0.3,
+            'orb': 0.2
+        }
+        
+        overall_sim = (
+            weights['cnn'] * cnn_sim +
+            weights['hash'] * hash_sim +
+            weights['block'] * block_sim +
+            weights['orb'] * orb_sim
+        )
+        
+        return float(overall_sim)
+        
+    def detect_similarities(self, image: np.ndarray) -> Dict:
+        """
+        Detect similarities between input image and database.
+        Returns similarity scores and matches.
+        """
+        # Extract features from input image
+        input_features = self.extract_features(image)
+        
+        # Compare with database
+        matches = []
+        max_similarity = 0.0
+        
+        for content_id, stored_features in self.feature_database.items():
+            similarity = self.compute_similarity(input_features, stored_features)
+            # Lower threshold and include partial matches
+            if similarity > 0.3:  # More permissive threshold for edited images
+                matches.append({
+                    "content_id": content_id,
+                    "similarity": float(similarity)
+                })
+            max_similarity = max(max_similarity, similarity)
+        
+        return {
+            "similarity_score": float(max_similarity),
+            "matches": sorted(matches, key=lambda x: x["similarity"], reverse=True)
+        }
+        
+    def register_content(self, content_id: str, image: np.ndarray):
+        """Register content in the feature database."""
+        features = self.extract_features(image)
+        self.feature_database[content_id] = features

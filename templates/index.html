@@ -3,215 +3,515 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SecureStream - Content Protection Platform</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>SecureStream Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Loading spinner */
+        .spinner {
+            display: none;
+            width: 40px;
+            height: 40px;
+            margin: 20px auto;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* UI Enhancements */
+        .card {
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .nav-tabs .nav-link {
+            color: #495057;
+            font-weight: 500;
+            padding: 12px 20px;
+            border: none;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-tabs .nav-link.active {
+            color: #007bff;
+            border-bottom: 2px solid #007bff;
+            background: none;
+        }
+        .btn-primary {
+            padding: 12px 24px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .form-control {
+            padding: 12px;
+            border-radius: 8px;
+        }
+        .alert {
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        /* Processing state */
+        .processing .btn-primary {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        .processing .spinner {
+            display: block;
+        }
+        
+        /* Additional styles for detect piracy page */
+        .match-card {
+            border: none;
+            border-left: 4px solid #ffc107;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+            transition: transform 0.2s;
+        }
+        .match-card:hover {
+            transform: translateY(-2px);
+        }
+        .match-type {
+            color: #664d03;
+            background: #fff3cd;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        .similarity-score {
+            color: #0d6efd;
+            font-weight: bold;
+        }
+        .detect-progress {
+            height: 6px;
+            border-radius: 3px;
+            margin: 15px 0;
+            background-color: #e9ecef;
+        }
+        .detect-progress .progress-bar {
+            background-color: #0d6efd;
+            border-radius: 3px;
+        }
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .details-item {
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 6px;
+        }
+        .details-item strong {
+            color: #495057;
+            display: block;
+            font-size: 0.9em;
+            margin-bottom: 4px;
+        }
+        
+        /* Processing indicator styles */
+        .processing-text {
+            display: none;
+            text-align: center;
+            margin: 15px 0;
+            color: #0d6efd;
+            font-weight: 500;
+        }
+        .processing-text span {
+            display: inline-block;
+            animation: processingDots 1.4s infinite;
+        }
+        @keyframes processingDots {
+            0%, 20% { content: ''; }
+            40% { content: '.'; }
+            60% { content: '..'; }
+            80% { content: '...'; }
+        }
+        .processing .processing-text {
+            display: block;
+        }
+    </style>
 </head>
-<body class="bg-gray-100">
-    <nav class="bg-blue-600 text-white p-4">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-bold">SecureStream</h1>
-            <div class="flex space-x-4">
-                <button onclick="showTab('upload')" class="hover:text-blue-200">Upload</button>
-                <button onclick="showTab('verify')" class="hover:text-blue-200">Verify</button>
-                <button onclick="showTab('detect')" class="hover:text-blue-200">Detect Piracy</button>
-            </div>
-        </div>
-    </nav>
+<body class="bg-light">
+    <div class="container py-5">
+        <h1 class="text-center mb-4">SecureStream Content Protection</h1>
+        
+        <!-- Tab Navigation -->
+        <ul class="nav nav-tabs mb-4" id="tabs">
+            <li class="nav-item">
+                <a class="nav-link active" data-tab="upload" href="#">Upload & Protect</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-tab="verify" href="#">Verify Content</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-tab="detect" href="#">Detect Piracy</a>
+            </li>
+        </ul>
 
-    <div class="container mx-auto p-8">
-        <!-- Upload Tab -->
-        <div id="upload" class="tab-content">
-            <div class="bg-white rounded-lg shadow-lg p-6">
-                <h2 class="text-2xl font-bold mb-4">Protect Your Content</h2>
-                <form id="uploadForm" class="space-y-4">
-                    <div>
-                        <label class="block text-gray-700 mb-2">Title</label>
-                        <input type="text" name="title" required class="w-full p-2 border rounded">
+        <!-- Upload & Protect Tab -->
+        <div id="upload" class="tab-content active">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title mb-4">Upload New Content</h2>
+                    <form id="uploadForm">
+                        <div class="mb-3">
+                            <label class="form-label">Image File</label>
+                            <input type="file" name="file" accept="image/*" required class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Title</label>
+                            <input type="text" name="title" required class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea name="description" rows="3" required class="form-control"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Protect Content</button>
+                        <div class="spinner"></div>
+                    </form>
+                    
+                    <!-- Results Section -->
+                    <div id="results" class="mt-4" style="display: none;">
+                        <div class="alert alert-success">
+                            <h4>Content Protected Successfully!</h4>
+                            <div class="mt-3">
+                                <p><strong>Content ID:</strong> <span id="contentId"></span></p>
+                                <p><strong>Transaction Hash:</strong> <a id="txHash" target="_blank"></a></p>
+                                <p><strong>Watermark:</strong> <span id="watermark"></span></p>
+                            </div>
+                        </div>
+                        <div class="card mt-3">
+                            <div class="card-body">
+                                <h5 class="card-title">Watermarked Image</h5>
+                                <img id="watermarkedImage" class="img-fluid mb-3" style="max-width: 100%;">
+                                <a id="downloadLink" class="btn btn-secondary" download>Download Watermarked Image</a>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-gray-700 mb-2">Description</label>
-                        <textarea name="description" class="w-full p-2 border rounded"></textarea>
-                    </div>
-                    <div>
-                        <label class="block text-gray-700 mb-2">File</label>
-                        <input type="file" name="file" required class="w-full p-2 border rounded" accept="image/*">
-                    </div>
-                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                        Protect Content
-                    </button>
-                </form>
-                <div id="uploadResult" class="mt-4"></div>
+                </div>
             </div>
         </div>
 
         <!-- Verify Tab -->
-        <div id="verify" class="tab-content hidden">
-            <div class="bg-white rounded-lg shadow-lg p-6">
-                <h2 class="text-2xl font-bold mb-4">Verify Content Ownership</h2>
-                <form id="verifyForm" class="space-y-4">
-                    <div>
-                        <label class="block text-gray-700 mb-2">File to Verify</label>
-                        <input type="file" name="file" required class="w-full p-2 border rounded" accept="image/*">
-                    </div>
-                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                        Verify Content
-                    </button>
-                </form>
-                <div id="verifyResult" class="mt-4"></div>
+        <div id="verify" class="tab-content" style="display: none;">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title mb-4">Verify Content</h2>
+                    <form id="verifyForm">
+                        <div class="mb-3">
+                            <label class="form-label">Upload Image to Verify</label>
+                            <input type="file" name="file" accept="image/*" required class="form-control">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Verify Content</button>
+                        <div class="spinner"></div>
+                    </form>
+                    <div id="verifyResult" class="mt-4"></div>
+                </div>
             </div>
         </div>
 
-        <!-- Detect Tab -->
-        <div id="detect" class="tab-content hidden">
-            <div class="bg-white rounded-lg shadow-lg p-6">
-                <h2 class="text-2xl font-bold mb-4">Detect Content Piracy</h2>
-                <form id="detectForm" class="space-y-4">
-                    <div>
-                        <label class="block text-gray-700 mb-2">File to Check</label>
-                        <input type="file" name="file" required class="w-full p-2 border rounded" accept="image/*">
+        <!-- Detect Piracy Tab -->
+        <div id="detect" class="tab-content" style="display: none;">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title mb-4">Detect Piracy</h2>
+                    <form id="detectForm">
+                        <div class="mb-3">
+                            <label class="form-label">Upload Image to Check</label>
+                            <input type="file" name="file" accept="image/*" required class="form-control">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Check for Piracy</button>
+                        <div class="processing-text">
+                            Processing <span>...</span>
+                        </div>
+                        <div class="spinner"></div>
+                    </form>
+                    <div id="detectResult" class="mt-4">
+                        <div class="progress" style="display: none;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                 role="progressbar" style="width: 100%">
+                                Analyzing...
+                            </div>
+                        </div>
+                        <div id="detectStatus"></div>
                     </div>
-                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                        Check for Piracy
-                    </button>
-                </form>
-                <div id="detectResult" class="mt-4"></div>
+                </div>
             </div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Tab switching
-        function showTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
-            document.getElementById(tabId).classList.remove('hidden');
+        document.querySelectorAll('[data-tab]').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                e.preventDefault();
+                const tabId = tab.getAttribute('data-tab');
+                
+                // Update active tab
+                document.querySelectorAll('[data-tab]').forEach(t => {
+                    t.classList.remove('active');
+                    t.parentElement.classList.remove('active');
+                });
+                tab.classList.add('active');
+                tab.parentElement.classList.add('active');
+                
+                // Show active content
+                document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
+                document.getElementById(tabId).style.display = 'block';
+            });
+        });
+
+        // Add loading state handlers
+        function showLoading(form) {
+            form.classList.add('processing');
+            form.querySelector('.spinner').style.display = 'block';
+            form.querySelector('button[type="submit"]').disabled = true;
+        }
+
+        function hideLoading(form) {
+            form.classList.remove('processing');
+            form.querySelector('.spinner').style.display = 'none';
+            form.querySelector('button[type="submit"]').disabled = false;
         }
 
         // Upload form handling
         document.getElementById('uploadForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const formData = new FormData(e.target);
-            const resultDiv = document.getElementById('uploadResult');
-            
+            showLoading(e.target);
             try {
-                resultDiv.innerHTML = '<div class="text-blue-600">Processing...</div>';
-                const response = await fetch('/api/register', {
+                const formData = new FormData(e.target);
+                
+                const response = await fetch('/register/', {
                     method: 'POST',
                     body: formData
                 });
-                const data = await response.json();
                 
-                if (data.status === 'success') {
-                    resultDiv.innerHTML = `
-                        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4">
-                            <p>Content protected successfully!</p>
-                            <p>Content ID: ${data.content_id}</p>
-                            <p>Transaction: ${data.transaction_hash}</p>
-                            <img src="${data.watermarked_url}" class="mt-4 max-w-md">
-                        </div>
-                    `;
+                const result = await response.json();
+                const resultDiv = document.getElementById('results');
+                
+                if (response.ok) {
+                    resultDiv.style.display = 'block';
+                    document.getElementById('contentId').innerText = result.content_id;
+                    const txHashElem = document.getElementById('txHash');
+                    txHashElem.href = `https://testnet.bscscan.com/tx/${result.transaction_hash}`;
+                    txHashElem.innerText = result.transaction_hash;
+                    document.getElementById('watermark').innerText = result.watermark || 'Not available';
+                    
+                    // Set watermarked image
+                    const watermarkedImage = document.getElementById('watermarkedImage');
+                    watermarkedImage.src = `/static/${result.watermarked_image}`;
+                    
+                    // Set download link
+                    const downloadLink = document.getElementById('downloadLink');
+                    downloadLink.href = `/static/${result.watermarked_image}`;
                 } else {
-                    throw new Error(data.message);
+                    throw new Error(result.detail || 'Failed to protect content');
                 }
             } catch (error) {
-                resultDiv.innerHTML = `
-                    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4">
-                        Error: ${error.message}
+                console.error('Error:', error);
+                document.getElementById('results').innerHTML = `
+                    <div class="alert alert-danger">
+                        <p>Error uploading content</p>
                     </div>
                 `;
+            } finally {
+                hideLoading(e.target);
             }
         });
 
         // Verify form handling
         document.getElementById('verifyForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const formData = new FormData(e.target);
-            const resultDiv = document.getElementById('verifyResult');
-            
+            showLoading(e.target);
             try {
-                resultDiv.innerHTML = '<div class="text-blue-600">Verifying...</div>';
-                const response = await fetch('/api/verify', {
+                const formData = new FormData(e.target);
+                const resultDiv = document.getElementById('verifyResult');
+                
+                const response = await fetch('/verify/', {
                     method: 'POST',
                     body: formData
                 });
-                const data = await response.json();
                 
-                if (data.status === 'verified') {
-                    const date = new Date(data.timestamp * 1000);
-                    resultDiv.innerHTML = `
-                        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4">
-                            <p>Content verified!</p>
-                            <p>Owner: ${data.owner}</p>
-                            <p>Registration Date: ${date.toLocaleString()}</p>
-                            <p>Status: ${data.is_valid ? 'Valid' : 'Invalid'}</p>
+                const result = await response.json();
+                
+                let alertClass = 'alert-warning';
+                if (result.status === 'verified') {
+                    alertClass = 'alert-success';
+                }
+                
+                let content = `<div class="alert ${alertClass}">`;
+                
+                if (result.status === 'verified') {
+                    content += `
+                        <h4>Content Verified!</h4>
+                        <div class="mt-3">
+                            <p><strong>Content ID:</strong> ${result.content_id}</p>
+                            <p><strong>Watermark:</strong> ${result.watermark}</p>
+                            <p><strong>Owner:</strong> ${result.owner}</p>
+                            <p><strong>Transaction:</strong> <a href="https://testnet.bscscan.com/tx/${result.transaction_hash}" target="_blank">${result.transaction_hash}</a></p>
+                            <p><strong>Similarity Score:</strong> ${(result.similarity * 100).toFixed(2)}%</p>
+                            <p><strong>Registration Time:</strong> ${new Date(result.registration_time * 1000).toLocaleString()}</p>
+                            <p><strong>Status:</strong> ${result.message}</p>
+                        </div>
+                    `;
+                } else if (result.status === 'partial') {
+                    content += `
+                        <h4>Watermark Found</h4>
+                        <div class="mt-3">
+                            <p><strong>Content ID:</strong> ${result.content_id}</p>
+                            <p><strong>Watermark:</strong> ${result.watermark}</p>
+                            <p><strong>Status:</strong> ${result.message}</p>
                         </div>
                     `;
                 } else {
-                    resultDiv.innerHTML = `
-                        <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4">
-                            ${data.message}
-                        </div>
-                    `;
+                    content += `<p class="mb-0">${result.message}</p>`;
                 }
+                
+                content += '</div>';
+                resultDiv.innerHTML = content;
+                
             } catch (error) {
+                console.error('Error:', error);
                 resultDiv.innerHTML = `
-                    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4">
-                        Error: ${error.message}
+                    <div class="alert alert-danger">
+                        <p class="mb-0">Error verifying content: ${error.message}</p>
                     </div>
                 `;
+            } finally {
+                hideLoading(e.target);
             }
         });
 
         // Detect form handling
-        document.getElementById('detectForm').addEventListener('submit', async (e) => {
+        const detectForm = document.getElementById('detectForm');
+        const detectFileInput = detectForm.querySelector('input[type="file"]');
+        const detectButton = detectForm.querySelector('button[type="submit"]');
+        const detectResult = document.getElementById('detectResult');
+        const progressBar = detectResult.querySelector('.progress');
+
+        // Clear previous results when new file is selected
+        detectFileInput.addEventListener('change', () => {
+            detectResult.innerHTML = '';
+            detectButton.disabled = false;
+            detectForm.classList.remove('processing');
+        });
+
+        detectForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const formData = new FormData(e.target);
-            const resultDiv = document.getElementById('detectResult');
             
+            if (!detectFileInput.files[0]) {
+                return;
+            }
+
+            // Show loading state
+            detectButton.disabled = true;
+            progressBar.style.display = 'block';
+            detectForm.classList.add('processing');
+            
+            const formData = new FormData(detectForm);
+
             try {
-                resultDiv.innerHTML = '<div class="text-blue-600">Analyzing...</div>';
-                const response = await fetch('/api/detect', {
+                const response = await fetch('/detect/', {
                     method: 'POST',
                     body: formData
                 });
-                const data = await response.json();
                 
-                if (data.status === 'success') {
-                    if (data.matches.length > 0) {
-                        const matchesHtml = data.matches.map(match => `
-                            <div class="border-b py-2">
-                                <p>Content ID: ${match.content_id}</p>
-                                <p>Owner: ${match.owner}</p>
-                                <p>Similarity: ${(match.similarity * 100).toFixed(2)}%</p>
-                                <p>Status: ${match.is_valid ? 'Valid' : 'Invalid'}</p>
-                            </div>
-                        `).join('');
-                        
-                        resultDiv.innerHTML = `
-                            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4">
-                                <p class="font-bold">Potential piracy detected!</p>
-                                <div class="mt-4">
-                                    ${matchesHtml}
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const result = await response.json();
+                
+                if (result.detected) {
+                    let content = `
+                        <div class="alert alert-warning">
+                            <h4 class="d-flex align-items-center">
+                                <span class="me-2">⚠️</span>
+                                Protected Content Detected!
+                            </h4>
+                            <p class="mb-0">${result.message}</p>
+                        </div>
+                    `;
+                    
+                    result.matches.forEach((match, index) => {
+                        const matchType = match.detection_type === 'watermark' ? 
+                            '🎯 Exact Match (Watermark)' : '👀 Similar Content (Fingerprint)';
+                            
+                        content += `
+                            <div class="match-card card">
+                                <div class="card-body">
+                                    <span class="match-type">${matchType}</span>
+                                    <h5 class="card-title mb-3">Match #${index + 1}</h5>
+                                    <div class="details-grid">
+                                        <div class="details-item">
+                                            <strong>Content ID</strong>
+                                            <span>${match.content_id}</span>
+                                        </div>
+                                        ${match.watermark ? `
+                                            <div class="details-item">
+                                                <strong>Watermark</strong>
+                                                <span>${match.watermark}</span>
+                                            </div>
+                                        ` : ''}
+                                        ${match.owner ? `
+                                            <div class="details-item">
+                                                <strong>Owner</strong>
+                                                <span>${match.owner}</span>
+                                            </div>
+                                        ` : ''}
+                                        <div class="details-item">
+                                            <strong>Similarity Score</strong>
+                                            <span class="similarity-score">${(match.similarity * 100).toFixed(2)}%</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         `;
-                    } else {
-                        resultDiv.innerHTML = `
-                            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4">
-                                No matching content found. This appears to be original content.
-                            </div>
-                        `;
-                    }
+                    });
+                    
+                    detectResult.innerHTML = content;
                 } else {
-                    throw new Error(data.message);
+                    detectResult.innerHTML = `
+                        <div class="alert alert-success">
+                            <h4 class="d-flex align-items-center">
+                                <span class="me-2">✅</span>
+                                No Protected Content Detected
+                            </h4>
+                            <p class="mb-0">${result.message}</p>
+                        </div>
+                    `;
                 }
             } catch (error) {
-                resultDiv.innerHTML = `
-                    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4">
-                        Error: ${error.message}
+                console.error('Error:', error);
+                detectResult.innerHTML = `
+                    <div class="alert alert-danger">
+                        <p class="mb-0">Error detecting piracy: ${error.message}</p>
                     </div>
                 `;
+            } finally {
+                // Reset form state
+                progressBar.style.display = 'none';
+                detectButton.disabled = false;
+                detectFileInput.value = '';
+                detectForm.classList.remove('processing');
             }
+        });
+
+        // Clear results when a new file is selected
+        document.querySelector('#detectForm input[type="file"]').addEventListener('change', () => {
+            const resultDiv = document.getElementById('detectResult');
+            resultDiv.innerHTML = '';
         });
     </script>
 </body>
