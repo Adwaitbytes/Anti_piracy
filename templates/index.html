@@ -252,6 +252,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // API configuration
+        const API_BASE_URL = 'http://localhost:8000'; // Change this when deploying your API
+
         // Tab switching
         document.querySelectorAll('[data-tab]').forEach(tab => {
             tab.addEventListener('click', (e) => {
@@ -272,17 +275,20 @@
             });
         });
 
-        // Add loading state handlers
+        // Show loading spinner
         function showLoading(form) {
-            form.classList.add('processing');
-            form.querySelector('.spinner').style.display = 'block';
-            form.querySelector('button[type="submit"]').disabled = true;
+            const spinner = form.querySelector('.spinner');
+            if (spinner) spinner.style.display = 'block';
+            const button = form.querySelector('button[type="submit"]');
+            if (button) button.disabled = true;
         }
 
+        // Hide loading spinner
         function hideLoading(form) {
-            form.classList.remove('processing');
-            form.querySelector('.spinner').style.display = 'none';
-            form.querySelector('button[type="submit"]').disabled = false;
+            const spinner = form.querySelector('.spinner');
+            if (spinner) spinner.style.display = 'none';
+            const button = form.querySelector('button[type="submit"]');
+            if (button) button.disabled = false;
         }
 
         // Upload form handling
@@ -292,7 +298,7 @@
             try {
                 const formData = new FormData(e.target);
                 
-                const response = await fetch('/register/', {
+                const response = await fetch(`${API_BASE_URL}/register/`, {
                     method: 'POST',
                     body: formData
                 });
@@ -338,7 +344,7 @@
                 const formData = new FormData(e.target);
                 const resultDiv = document.getElementById('verifyResult');
                 
-                const response = await fetch('/verify/', {
+                const response = await fetch(`${API_BASE_URL}/verify/`, {
                     method: 'POST',
                     body: formData
                 });
@@ -422,7 +428,7 @@
             const formData = new FormData(detectForm);
 
             try {
-                const response = await fetch('/detect/', {
+                const response = await fetch(`${API_BASE_URL}/detect/`, {
                     method: 'POST',
                     body: formData
                 });
